@@ -98,6 +98,116 @@ class App < Sinatra::Base
       logger.error "Failed to parse body: #{e.inspect}"
       halt 400
     end
+
+    def chair_features
+      {
+        "ヘッドレスト付き" => 1,
+        "肘掛け付き" => 2,
+        "キャスター付き" => 3,
+        "アーム高さ調節可能" => 4,
+        "リクライニング可能" => 5,
+        "高さ調節可能" => 6,
+        "通気性抜群" => 7,
+        "メタルフレーム" => 8,
+        "低反発" => 9,
+        "木製" => 10,
+        "背もたれつき" => 11,
+        "回転可能" => 12,
+        "レザー製" => 13,
+        "昇降式" => 14,
+        "デザイナーズ" => 15,
+        "金属製" => 16,
+        "プラスチック製" => 17,
+        "法事用" => 18,
+        "和風" => 19,
+        "中華風" => 20,
+        "西洋風" => 21,
+        "イタリア製" => 22,
+        "国産" => 23,
+        "背もたれなし" => 24,
+        "ラテン風" => 25,
+        "布貼地" => 26,
+        "スチール製" => 27,
+        "メッシュ貼地" => 28,
+        "オフィス用" => 29,
+        "料理店用" => 30,
+        "自宅用" => 31,
+        "キャンプ用" => 32,
+        "クッション性抜群" => 33,
+        "モーター付き" => 34,
+        "ベッド一体型" => 35,
+        "ディスプレイ配置可能" => 36,
+        "ミニ机付き" => 37,
+        "スピーカー付属" => 38,
+        "中国製" => 39,
+        "アンティーク" => 40,
+        "折りたたみ可能" => 41,
+        "重さ500g以内" => 42,
+        "24回払い無金利" => 43,
+        "現代的デザイン" => 44,
+        "近代的なデザイン" => 45,
+        "ルネサンス的なデザイン" => 46,
+        "アームなし" => 47,
+        "オーダーメイド可能" => 48,
+        "ポリカーボネート製" => 49,
+        "フットレスト付き" => 50
+      }
+    end
+
+    def estate_features
+      {
+        "最上階" => 1,
+        "防犯カメラ" => 2,
+        "ウォークインクローゼット" => 3,
+        "ワンルーム" => 4,
+        "ルーフバルコニー付" => 5,
+        "エアコン付き" => 6,
+        "駐輪場あり" => 7,
+        "プロパンガス" => 8,
+        "駐車場あり" => 9,
+        "防音室" => 10,
+        "追い焚き風呂" => 11,
+        "オートロック" => 12,
+        "即入居可" => 13,
+        "IHコンロ" => 14,
+        "敷地内駐車場" => 15,
+        "トランクルーム" => 16,
+        "角部屋" => 17,
+        "カスタマイズ可" => 18,
+        "DIY可" => 19,
+        "ロフト" => 20,
+        "シューズボックス" => 21,
+        "インターネット無料" => 22,
+        "地下室" => 23,
+        "敷地内ゴミ置場" => 24,
+        "管理人有り" => 25,
+        "宅配ボックス" => 26,
+        "ルームシェア可" => 27,
+        "セキュリティ会社加入済" => 28,
+        "メゾネット" => 29,
+        "女性限定" => 30,
+        "バイク置場あり" => 31,
+        "エレベーター" => 32,
+        "ペット相談可" => 33,
+        "洗面所独立" => 34,
+        "都市ガス" => 35,
+        "浴室乾燥機" => 36,
+        "インターネット接続可" => 37,
+        "テレビ・通信" => 38,
+        "専用庭" => 39,
+        "システムキッチン" => 40,
+        "高齢者歓迎" => 41,
+        "ケーブルテレビ" => 42,
+        "床下収納" => 43,
+        "バス・トイレ別" => 44,
+        "駐車場2台以上" => 45,
+        "楽器相談可" => 46,
+        "フローリング" => 47,
+        "オール電化" => 48,
+        "TVモニタ付きインタホン" => 49,
+        "デザイナーズ物件" => 50
+      }
+    end
   end
 
   post '/initialize' do
@@ -112,24 +222,35 @@ class App < Sinatra::Base
     end
 
     # normalize features
-    # chair_features = {}
-    # db.query("SELECT * FROM chair_feature").each {|r|
-    #   chair_features[r[:feature]] = r[:id]
-    # }
-    # estate_features = {}
-    # db.query("SELECT * FROM estate_feature").each {|r|
-    #   estate_features[r[:feature]] = r[:id]
-    # }
-    # db.query("SELECT * from chair").each {|row|
-    #   row[:features].split(",").each {|f|
-    #     db.xquery("INSERT INTO chairs_features (chair_id, feature_id) VALUES (?, ?)", [row[:id], chair_features[f]])
-    #   }
-    # }
-    # db.query("SELECT * from estate_feature").each {|row|
-    #   row[:features].split(",").each {|f|
-    #     db.xquery("INSERT INTO estates_features (estate_id, feature_id) VALUES (?, ?)", [row[:id], estate_features[f]])
-    #   }
-    # }
+    db.query("SELECT * from chair").each_slice(100) {|rows|
+      sql_header = "INSERT INTO chairs_features (chair_id, feature_id) VALUES "
+      sql_bodies = []
+      sql_values = []
+
+      rows.each {|row|
+        row[:features].split(",").each {|f|
+          sql_bodies << "(?, ?)"
+          sql_values += [row[:id], chair_features[f]]
+        }
+      }
+
+      db.xquery(sql_header + sql_bodies.join(","), sql_values)
+    }
+
+    db.query("SELECT * from estate").each_slice(100) {|rows|
+      sql_header = "INSERT INTO estates_features (estate_id, feature_id) VALUES "
+      sql_bodies = []
+      sql_values = []
+
+      rows.each {|row|
+        row[:features].split(",").each {|f|
+          sql_bodies << "(?, ?)"
+          sql_values += [row[:id], estate_features[f]]
+        }
+      }
+
+      db.xquery(sql_header + sql_bodies.join(","), sql_values)
+    }
 
     { language: 'ruby' }.to_json
   end
@@ -298,15 +419,32 @@ class App < Sinatra::Base
 
     transaction('post_api_chair') do
       # bulk insert by tondol
+      sql_header = 'INSERT INTO chair(id, name, description, thumbnail, price, height, width, depth, color, features, kind, popularity, stock) VALUES '
+      feature_header = 'INSERT INTO chairs_features (chair_id, feature_id) VALUES '
+
       CSV.parse(params[:chairs][:tempfile].read, skip_blanks: true).each_slice(1000) do |rows|
-        sql_header = 'INSERT INTO chair(id, name, description, thumbnail, price, height, width, depth, color, features, kind, popularity, stock) VALUES '
         sql_bodies = []
         sql_values = []
+
+        feature_bodies = []
+        feature_values = []
+
         rows.each {|row|
           sql_bodies << '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
           sql_values += row.map(&:to_s)
+
+          # row[0] -> id, row[9] -> features
+          row[9].split(",").each {|f|
+            f = f.force_encoding(Encoding::UTF_8)
+            feature_id = chair_features[f]
+            next unless feature_id
+            feature_bodies << '(?, ?)'
+            feature_values += [row[0], feature_id]
+          }
         }
+
         db.xquery(sql_header + sql_bodies.join(','), sql_values)
+        db.xquery(feature_header + feature_bodies.join(','), feature_values) unless feature_values.empty?
       end
     end
 
@@ -507,15 +645,32 @@ class App < Sinatra::Base
 
     transaction('post_api_estate') do
       # bulk insert by tondol
+      sql_header = 'INSERT INTO estate(id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity) VALUES '
+      feature_header = 'INSERT INTO estates_features(estate_id, feature_id) VALUES '
+
       CSV.parse(params[:estates][:tempfile].read, skip_blanks: true).each_slice(1000) do |rows|
-        sql_header = 'INSERT INTO estate(id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity) VALUES '
         sql_bodies = []
         sql_values = []
+
+        feature_bodies = []
+        feature_values = []
+
         rows.each {|row|
           sql_bodies << '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
           sql_values += row.map(&:to_s)
+
+          # row[0] -> id, row[10] -> features
+          row[10].split(",").each {|f|
+            f = f.force_encoding(Encoding::UTF_8)
+            feature_id = estate_features[f]
+            next unless feature_id
+            feature_bodies << '(?, ?)'
+            feature_values += [row[0], feature_id]
+          }
         }
+
         db.xquery(sql_header + sql_bodies.join(','), sql_values)
+        db.xquery(feature_header + feature_bodies.join(','), feature_values) unless feature_values.empty?
       end
     end
 
