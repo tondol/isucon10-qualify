@@ -111,6 +111,26 @@ class App < Sinatra::Base
       end
     end
 
+    # normalize features
+    # chair_features = {}
+    # db.query("SELECT * FROM chair_feature").each {|r|
+    #   chair_features[r[:feature]] = r[:id]
+    # }
+    # estate_features = {}
+    # db.query("SELECT * FROM estate_feature").each {|r|
+    #   estate_features[r[:feature]] = r[:id]
+    # }
+    # db.query("SELECT * from chair").each {|row|
+    #   row[:features].split(",").each {|f|
+    #     db.xquery("INSERT INTO chairs_features (chair_id, feature_id) VALUES (?, ?)", [row[:id], chair_features[f]])
+    #   }
+    # }
+    # db.query("SELECT * from estate_feature").each {|row|
+    #   row[:features].split(",").each {|f|
+    #     db.xquery("INSERT INTO estates_features (estate_id, feature_id) VALUES (?, ?)", [row[:id], estate_features[f]])
+    #   }
+    # }
+
     { language: 'ruby' }.to_json
   end
 
