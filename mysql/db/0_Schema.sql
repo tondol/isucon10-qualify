@@ -37,10 +37,10 @@ CREATE TABLE isuumo.chair
     stock       INTEGER         NOT NULL
 );
 
-CREATE INDEX estate_lat_lon_idx ON estate (latitude,longitude)
-CREATE INDEX estate_lon_lat_idx ON estate (longitude,latitude);
-CREATE INDEX estate_rent_idx ON estate (rent);
-CREATE INDEX chair_stock_idx ON chair (stock);
-CREATE INDEX chair_price_idx ON chair (price);
-CREATE INDEX estate_door_width_idx on estate (door_width);
-CREATE INDEX estate_door_height_idx on estate (door_height);
+CREATE INDEX estate_lat_lon_idx ON isuumo.estate (latitude, longitude);
+CREATE INDEX estate_lon_lat_idx ON isuumo.estate (longitude, latitude);
+CREATE INDEX estate_rent_idx ON isuumo.estate (rent);
+CREATE INDEX chair_stock_idx ON isuumo.chair (stock);
+CREATE INDEX chair_price_idx ON isuumo.chair (price);
+CREATE INDEX estate_door_width_idx on isuumo.estate (door_width);
+CREATE INDEX estate_door_height_idx on isuumo.estate (door_height);
