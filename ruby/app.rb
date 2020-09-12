@@ -279,7 +279,7 @@ class App < Sinatra::Base
     transaction('post_api_chair') do
       # bulk insert by tondol
       CSV.parse(params[:chairs][:tempfile].read, skip_blanks: true).each_slice(1000) do |rows|
-        sql_head = 'INSERT INTO chair(id, name, description, thumbnail, price, height, width, depth, color, features, kind, popularity, stock) VALUES '
+        sql_header = 'INSERT INTO chair(id, name, description, thumbnail, price, height, width, depth, color, features, kind, popularity, stock) VALUES '
         sql_bodies = []
         sql_values = []
         rows.each {|row|
