@@ -228,7 +228,7 @@ class App < Sinatra::Base
 
     if params[:features] && params[:features].size > 0
       params[:features].split(',').each do |feature_condition|
-        search_queries << "FIND_IN_SET(%, features)"
+        search_queries << "FIND_IN_SET(?, features)"
         query_params.push(feature_condition)
       end
     end
@@ -409,7 +409,7 @@ class App < Sinatra::Base
 
     if params[:features] && params[:features].size > 0
       params[:features].split(',').each do |feature_condition|
-        search_queries << "FIND_IN_SET(%, features)"
+        search_queries << "FIND_IN_SET(?, features)"
         query_params.push(feature_condition)
       end
     end
