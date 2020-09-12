@@ -102,7 +102,7 @@ class App < Sinatra::Base
 
   post '/initialize' do
     sql_dir = Pathname.new('../mysql/db')
-    %w[0_Schema.sql 1_DummyEstateData.sql 2_DummyChairData.sql].each do |sql|
+    %w[0_Schema.sql 1_DummyEstateData.sql 2_DummyChairData.sql 3_Features.sql].each do |sql|
       sql_path = sql_dir.join(sql)
       cmd = ['mysql', '-h', db_info[:host], '-u', db_info[:username], "-p#{db_info[:password]}", '-P', db_info[:port], db_info[:database]]
       IO.popen(cmd, 'w') do |io|
