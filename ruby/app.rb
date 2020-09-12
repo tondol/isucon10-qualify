@@ -474,7 +474,6 @@ class App < Sinatra::Base
 
     coordinates_to_text = "'POLYGON((%s))'" % coordinates.map { |c| '%f %f' % c.values_at(:latitude, :longitude) }.join(',')
     sql = 'SELECT * FROM estate WHERE latitude <= ? AND latitude >= ? AND longitude <= ? AND longitude >= ? AND ST_Contains(ST_PolygonFromText(%s), POINT(latitude,longitude)) ORDER BY popularity DESC, id ASC limit 50' % [coordinates_to_text]
-    puts sql
     nazotte_estates = db.xquery(sql, bounding_box[:bottom_right][:latitude], bounding_box[:top_left][:latitude], bounding_box[:bottom_right][:longitude], bounding_box[:top_left][:longitude])
     {
       estates: nazotte_estates.map { |e| camelize_keys_for_estate(e) },
