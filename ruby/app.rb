@@ -277,9 +277,16 @@ class App < Sinatra::Base
     end
 
     transaction('post_api_chair') do
-      CSV.parse(params[:chairs][:tempfile].read, skip_blanks: true) do |row|
-        sql = 'INSERT INTO chair(id, name, description, thumbnail, price, height, width, depth, color, features, kind, popularity, stock) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
-        db.xquery(sql, *row.map(&:to_s))
+      # bulk insert by tondol
+      CSV.parse(params[:chairs][:tempfile].read, skip_blanks: true).each_slice(1000) do |rows|
+        sql_head = 'INSERT INTO chair(id, name, description, thumbnail, price, height, width, depth, color, features, kind, popularity, stock) VALUES '
+        sql_bodies = []
+        sql_values = []
+        rows.each {|row|
+          sql_bodies << '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+          sql_values += *row.map(&:to_s)
+        }
+        db.xquery(sql_header + sql_bodies.join(','), sql_values)
       end
     end
 
@@ -491,9 +498,16 @@ class App < Sinatra::Base
     end
 
     transaction('post_api_estate') do
-      CSV.parse(params[:estates][:tempfile].read, skip_blanks: true) do |row|
-        sql = 'INSERT INTO estate(id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
-        db.xquery(sql, *row.map(&:to_s))
+      # bulk insert by tondol
+      CSV.parse(params[:estates][:tempfile].read, skip_blanks: true).each_slice(1000) do |rows|
+        sql_header = 'INSERT INTO estate(id, name, description, thumbnail, address, latitude, longitude, rent, door_height, door_width, features, popularity) VALUES '
+        sql_bodies = []
+        sql_values = []
+        rows.each {|row|
+          sql_bodies << '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
+          sql_values += *row.map(&:to_s)
+        }
+        db.xquery(sql_header + sql_bodies.join(','), sql_values)
       end
     end
 
