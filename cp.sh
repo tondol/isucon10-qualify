@@ -5,3 +5,4 @@ if [ $(id -u) != 0 ]; then
 fi
 
 cp nginx-isuumo.conf /etc/nginx/sites-available/isuumo.conf
+cp nginx.conf /etc/nginx/nginx.conf
