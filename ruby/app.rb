@@ -284,7 +284,7 @@ class App < Sinatra::Base
         sql_values = []
         rows.each {|row|
           sql_bodies << '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
-          sql_values += *row.map(&:to_s)
+          sql_values += row.map(&:to_s)
         }
         db.xquery(sql_header + sql_bodies.join(','), sql_values)
       end
@@ -505,7 +505,7 @@ class App < Sinatra::Base
         sql_values = []
         rows.each {|row|
           sql_bodies << '(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
-          sql_values += *row.map(&:to_s)
+          sql_values += row.map(&:to_s)
         }
         db.xquery(sql_header + sql_bodies.join(','), sql_values)
       end
