@@ -228,7 +228,7 @@ class App < Sinatra::Base
       sql_values = []
 
       rows.each {|row|
-        row[:features].split(",").each {|f|
+        (row[:features] || "").split(",").each {|f|
           sql_bodies << "(?, ?)"
           sql_values += [row[:id], chair_features[f]]
         }
@@ -243,7 +243,7 @@ class App < Sinatra::Base
       sql_values = []
 
       rows.each {|row|
-        row[:features].split(",").each {|f|
+        (row[:features] || "").split(",").each {|f|
           sql_bodies << "(?, ?)"
           sql_values += [row[:id], estate_features[f]]
         }
@@ -348,13 +348,14 @@ class App < Sinatra::Base
     end
 
     if params[:features] && params[:features].size > 0
+      feature_values = []
+
       params[:features].split(',').each do |feature_condition|
-        search_queries << "FIND_IN_SET(?, features)"
-        query_params.push(feature_condition)
+        feature_values << chair_features[feature_condition]
       end
     end
 
-    if search_queries.size == 0
+    if search_queries.size == 0 && feature_values.empty?
       logger.error "Search condition not found"
       halt 400
     end
@@ -377,15 +378,31 @@ class App < Sinatra::Base
         halt 400
       end
 
-    sqlprefix = 'SELECT * FROM chair WHERE '
-    search_condition = search_queries.join(' AND ')
-    limit_offset = " ORDER BY popularity DESC, id ASC LIMIT #{per_page} OFFSET #{per_page * page}" # XXX: mysql-cs-bind doesn't support escaping variables for limit and offset
-    count_prefix = 'SELECT COUNT(*) as count FROM chair WHERE '
+      if feature_values
+        search_queries << "cf.feature_id IN (" + feature_values.join(',') +  ")"
 
-    count = db.xquery("#{count_prefix}#{search_condition}", query_params).first[:count]
-    chairs = db.xquery("#{sqlprefix}#{search_condition}#{limit_offset}", query_params).to_a
+        sqlprefix = 'SELECT chair.* FROM chair JOIN chairs_features AS cf ON chair.id = cf.chair_id WHERE '
+        search_condition = "#{search_queries.join(' AND ')} GROUP BY chair.id HAVING COUNT(chair.id) = #{feature_values.count}"
+        limit_offset = " ORDER BY popularity DESC, id ASC LIMIT #{per_page} OFFSET #{per_page * page}"
+        # use subquery for count :sob:
+        count_prefix = 'SELECT COUNT(*) as count FROM (SELECT chair.id FROM chair JOIN chairs_features AS cf ON chair.id = cf.chair_id WHERE '
+        count_postfix = ") as subquery"
 
-    { count: count, chairs: chairs }.to_json
+        count = db.xquery("#{count_prefix}#{search_condition}#{count_postfix}", query_params).first[:count]
+        chairs = db.xquery("#{sqlprefix}#{search_condition}#{limit_offset}", query_params).to_a
+
+        { count: count, chairs: chairs }.to_json
+      else
+        sqlprefix = 'SELECT * FROM chair WHERE '
+        search_condition = search_queries.join(' AND ')
+        limit_offset = " ORDER BY popularity DESC, id ASC LIMIT #{per_page} OFFSET #{per_page * page}" # XXX: mysql-cs-bind doesn't support escaping variables for limit and offset
+        count_prefix = 'SELECT COUNT(*) as count FROM chair WHERE '
+
+        count = db.xquery("#{count_prefix}#{search_condition}", query_params).first[:count]
+        chairs = db.xquery("#{sqlprefix}#{search_condition}#{limit_offset}", query_params).to_a
+
+        { count: count, chairs: chairs }.to_json
+      end
   end
 
   get '/api/chair/:id' do
@@ -434,7 +451,7 @@ class App < Sinatra::Base
           sql_values += row.map(&:to_s)
 
           # row[0] -> id, row[9] -> features
-          row[9].split(",").each {|f|
+          (row[9] || "").split(",").each {|f|
             f = f.force_encoding(Encoding::UTF_8)
             feature_id = chair_features[f]
             next unless feature_id
@@ -546,13 +563,14 @@ class App < Sinatra::Base
     end
 
     if params[:features] && params[:features].size > 0
+      feature_values = []
+
       params[:features].split(',').each do |feature_condition|
-        search_queries << "FIND_IN_SET(?, features)"
-        query_params.push(feature_condition)
+        feature_values << estate_features[feature_condition]
       end
     end
 
-    if search_queries.size == 0
+    if search_queries.size == 0 && feature_values.empty?
       logger.error "Search condition not found"
       halt 400
     end
@@ -573,15 +591,32 @@ class App < Sinatra::Base
         halt 400
       end
 
-    sqlprefix = 'SELECT * FROM estate WHERE '
-    search_condition = search_queries.join(' AND ')
-    limit_offset = " ORDER BY popularity DESC, id ASC LIMIT #{per_page} OFFSET #{per_page * page}" # XXX:
-    count_prefix = 'SELECT COUNT(*) as count FROM estate WHERE '
+    if feature_values
+      search_queries << "ef.feature_id IN (" + feature_values.join(',') +  ")"
 
-    count = db.xquery("#{count_prefix}#{search_condition}", query_params).first[:count]
-    estates = db.xquery("#{sqlprefix}#{search_condition}#{limit_offset}", query_params).to_a
+      sqlprefix = 'SELECT estate.* FROM estate JOIN estates_features AS ef ON estate.id = ef.estate_id WHERE '
+      search_condition = "#{search_queries.join(' AND ')} GROUP BY estate.id HAVING COUNT(estate.id) = #{feature_values.count}"
+      limit_offset = " ORDER BY popularity DESC, id ASC LIMIT #{per_page} OFFSET #{per_page * page}"
+      # use subquery for count :sob:
+      count_prefix = 'SELECT COUNT(*) as count FROM (SELECT estate.id FROM estate JOIN estates_features AS ef ON estate.id = ef.estate_id WHERE '
+      count_postfix = ") as subquery"
 
-    { count: count, estates: estates.map { |e| camelize_keys_for_estate(e) } }.to_json
+      puts "#{count_prefix}#{search_condition}#{count_postfix}"
+      count = db.xquery("#{count_prefix}#{search_condition}#{count_postfix}", query_params).first[:count]
+      estates = db.xquery("#{sqlprefix}#{search_condition}#{limit_offset}", query_params).to_a
+
+      { count: count, estates: estates.map { |e| camelize_keys_for_estate(e) } }.to_json
+    else
+      sqlprefix = 'SELECT * FROM estate WHERE '
+      search_condition = search_queries.join(' AND ')
+      limit_offset = " ORDER BY popularity DESC, id ASC LIMIT #{per_page} OFFSET #{per_page * page}" # XXX: mysql-cs-bind doesn't support escaping variables for limit and offset
+      count_prefix = 'SELECT COUNT(*) as count FROM estate WHERE '
+
+      count = db.xquery("#{count_prefix}#{search_condition}", query_params).first[:count]
+      estates = db.xquery("#{sqlprefix}#{search_condition}#{limit_offset}", query_params).to_a
+
+      { count: count, estates: estates.map { |e| camelize_keys_for_estate(e) } }.to_json
+    end
   end
 
   post '/api/estate/nazotte' do
@@ -660,7 +695,7 @@ class App < Sinatra::Base
           sql_values += row.map(&:to_s)
 
           # row[0] -> id, row[10] -> features
-          row[10].split(",").each {|f|
+          (row[10] || "").split(",").each {|f|
             f = f.force_encoding(Encoding::UTF_8)
             feature_id = estate_features[f]
             next unless feature_id
