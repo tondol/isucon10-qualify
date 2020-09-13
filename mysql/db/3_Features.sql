@@ -112,5 +112,5 @@ CREATE TABLE isuumo.estates_features (estate_id INT NOT NULL, feature_id INT NOT
 --       ('TVモニタ付きインタホン'),
 --       ('デザイナーズ物件');
 
-CREATE INDEX cf_chair_feature_idx on chairs_features (chair_id, feature_id);
-CREATE INDEX ef_estate_feature_idx on estates_features (estate_id, feature_id);
+CREATE INDEX cf_chair_feature_idx on isuumo.chairs_features (chair_id, feature_id);
+CREATE INDEX ef_estate_feature_idx on isuumo.estates_features (estate_id, feature_id);
