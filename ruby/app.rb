@@ -601,7 +601,6 @@ class App < Sinatra::Base
       count_prefix = 'SELECT COUNT(*) as count FROM (SELECT estate.id FROM estate JOIN estates_features AS ef ON estate.id = ef.estate_id WHERE '
       count_postfix = ") as subquery"
 
-      puts "#{count_prefix}#{search_condition}#{count_postfix}"
       count = db.xquery("#{count_prefix}#{search_condition}#{count_postfix}", query_params).first[:count]
       estates = db.xquery("#{sqlprefix}#{search_condition}#{limit_offset}", query_params).to_a
 
