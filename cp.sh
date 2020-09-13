@@ -6,3 +6,5 @@ fi
 
 cp nginx-isuumo.conf /etc/nginx/sites-available/isuumo.conf
 cp nginx.conf /etc/nginx/nginx.conf
+cp my.cnf /etc/mysql/conf.d/my.cnf
+cp mysqld.cnf /etc/mysql/mysql.conf.d/mysqld.cnf
